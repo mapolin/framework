@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <title>Framework</title>
+
+    <!-- VENDORS -->
+    <script src="js/lib/lodash.min.js"></script>
+
+    <!-- TESTS -->
+    <link rel="stylesheet" href="node_modules/qunitjs/qunit/qunit.css">
+    <script src="node_modules/qunitjs/qunit/qunit.js"></script>
+</head>
+<body>
+    <script src="js/scripts.js"></script>
+
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+    <!-- Test cases -->
+    <script>
+        var app = window[NAMESPACE];
+        // test if the namespace exists
+        QUnit.test( 'Namespace exists', function( assert ) {
+            assert.ok( _.isObject( app ) && app._version, 'Passed!' );
+        });
+
+        QUnit.test( 'Can extend with static object', function( assert ) {
+
+            app.Extend( 'TestObject', {
+                a: 1, 
+                b: function() {
+                    return 1;
+                }
+            });
+
+            assert.ok( app.TestObject != null, 'Object is part of application namespace' );
+            assert.ok( app.TestObject.a == 1, 'Object\'s property is correctly set as a number' );
+            assert.ok( app.TestObject.b() == 1, 'Object\'s method is correctly set and returns correct value' );
+
+        });
+
+        QUnit.test( 'Can extend with a function', function( assert ) {
+
+            app.Extend( 'TestFunction', function(value) {
+                this.value = value;
+
+                this.get = function() {
+                    return this.value;
+                }
+            } );
+
+            var test = new app.TestFunction(1);
+
+            assert.ok( _.isFunction( test.get ), 'Member function can be instanciated' );
+            assert.ok( test.get() == 1, 'Member function instance returns correctly set value' );
+
+        });
+
+        QUnit.test( 'Can force extend already existing objects' , function( assert ) {
+
+            app.Extend( 'TestObject', {
+                method: function() {
+                    
+                }
+            }, true);
+
+            app.Extend( 'TestFunction', function(value) {
+                this.value = 2 * value;
+
+                this.get = function() {
+                    return this.value;
+                }
+            }, true);
+
+            var test = new app.TestFunction(1);
+
+            assert.ok( app.TestObject.a == 1 && _.isFunction( app.TestObject.method ), 'Object can be properly extended after it was originally created' );
+
+            assert.ok( test.get() == 2, 'Already defined function can properly be overwritten with @force' );
+
+        });
+
+        QUnit.test( 'Can not extend already existing objects without forcing' , function( assert ) {
+
+            app.Extend( 'TestFunction', function() {
+                this.problem = function() {
+
+                };
+            });
+
+            app.Extend( 'TestObject', {
+                c: 'Problem'
+            });
+
+            assert.notOk( _.isFunction( (new app.TestFunction()).problem ), 'Already defined functions can not be overwritten' );
+            assert.notOk( app.TestObject.c == 'Problem', 'Already defined functions can not be overwritten' );
+
+        });
+    </script>
+</body>
+</html>
